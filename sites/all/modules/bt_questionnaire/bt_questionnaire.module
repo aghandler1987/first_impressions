@@ -1,0 +1,652 @@
+<?php
+
+
+function bt_questionnaire_node_info(){
+  $node_type = array();
+  
+  $node_types['bt_questionnaire'] = array(
+      'name' => 'Questionnaire',
+      'base' => 'bt_questionnaire',
+      'description' => 'A content type that has a user photo and a set of questions',
+      'has_title' => FALSE,
+      'has_body' => FALSE,
+  );
+  
+  return $node_types;
+}
+function bt_questionnaire_install(){
+  $questionnaire_type = array(
+    'type' => 'bt_questionnaire',
+    'name' => 'bt_questionnaire',
+    'base' => 'node_content',
+    'description' => 'Create a new questionnaire',
+    'custom' => TRUE,
+    'modified' => TRUE,
+    'locked' => FALSE,
+  );
+
+  $questionnaire_type = node_type_set_defaults($questionnaire_type);
+  node_add_body_field($questionnaire_type);
+  $status = node_type_save($questionnaire_type);
+  
+  $t_args = array('%name' => $questionnaire_type->name);
+  if ($status == SAVED_UPDATED) { // update case
+    drupal_set_message(t('The content type %name has been updated.', $t_args));
+  }
+  elseif ($status == SAVED_NEW) { // create case
+    drupal_set_message(t('The content type %name has been added.', $t_args));
+    watchdog('node', 'Added content type %name.', $t_args, WATCHDOG_NOTICE, l(t('view'), 'admin/structure/types'));
+  }
+  
+}
+
+function bt_questionnaire_start(){
+  global $user;
+  $result = db_query("SELECT nid FROM questionnaire WHERE uid = :uid LIMIT 1", array(':uid' =>$user->uid));
+  $nid = '';
+  foreach ($result as $row){
+    $nid = $row->nid;
+    break;
+  }
+  print $user->uid;
+  $output = '';
+  if (!$nid){
+    $output .='You have no questionnaire yet.<a href = "?q=questionnaire/add">Create Questionnaire</a>';
+    return $output;
+  }
+  
+  drupal_goto('/questionnaire/' .$nid);
+}
+
+function bt_questionnaire_menu(){
+  $items = array();
+  
+  $items['questionnaire'] = array(
+    'page callback' => 'bt_questionnaire_start', 
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK
+  );
+  
+  $items['questionnaire/%node'] = array(
+    'title' => 'Questionnaire',
+    'page callback' => 'bt_questionnaire_view',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  
+  $items['questionnaire/add'] = array(
+    'title' => 'Add Questionnaire',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bt_questionnaire_create_form'),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  
+  $items['questionnaire/%/edit'] = array(
+    'title' => 'Add Questionnaire',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bt_questionnaire_edit_form', 1),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  
+  
+  $items['questions'] = array(
+      'title' => 'Questions',
+      'page callback' => 'bt_questionnaire_questions_view',
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK
+  );
+  
+  $items['questions/add'] = array(
+      'title' => 'Add New Question',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('bt_questionnaire_add_question_form'),
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK
+  );
+    
+  return $items;
+}
+
+function bt_questionnaire_view($node){ 
+  global $user;
+  $output = '';
+  $output .= '<div class = "picture"><img src ="' . $node->image .'"/></div>';
+  if ($node->uid == $user->uid)
+    $output .='<a href = "?questionnaire/' . $node->nid . '/edit">Edit Questionnaire</a>';
+  $form = drupal_get_form('bt_questionnaire_vote_form', $node);
+  $output .= drupal_render($form);
+  $output .= bt_questionnaire_results($node);
+  return $output;
+  
+}
+
+function bt_questionnaire_vote_form($form, &$form_state, $questionnaire){
+  global $user;
+  $form = array();
+  $questions = $questionnaire->questions;
+  $form['questions'] = array(
+       '#tree' => TRUE
+  );
+  foreach($questions as $ques_id=>$ques){
+   $answers = array();
+
+   foreach ($ques['answers'] as $ans_id=>$ans){
+      $answers[$ans_id] = $ans['title'];
+   }
+
+   $form['questions'][$ques_id] = array(
+        '#prefix' => '<div id = "question-' . $ques_id . '"><span class = "question-title">' . $ques['title'] . '</span>',
+        '#type'=>'radios',
+        '#options' => $answers,
+        '#suffix' => '</div><hr>',
+    );
+  }
+  $form['question_count'] = array(
+      '#type' => 'value',
+      '#value' => count($questions)
+  );
+  $form['qnid'] = array(
+      '#type' => 'value',
+      '#value' => $questionnaire->nid
+  );
+  //$already_voted    NEED TO ADD COOKIES????
+  //if (($questionnaire->uid != $user->uid) || ($already_voted)){
+    $form['submit'] = array(
+      '#type'=>'submit',
+      '#value' => t('Vote!')
+    );
+  //}
+  return $form;
+}
+
+function bt_questionnaire_vote_form_validate($form, &$form_state){
+  $values = $form_state['values'];
+  
+  $responses = array();
+  foreach ($values['questions'] as $qid=>$ans_id){
+    if ($ans_id)
+      $responses[$qid] = $ans_id;
+  }
+  if (count($responses) != $values['question_count'])
+    form_set_error('answer_all', 'Please select an answer for each questions!');
+  
+  $form_state['values']['responses'] = $responses;
+}
+
+function bt_questionnaire_vote_form_submit($form, &$form_state){
+  global $user;
+  
+  $values = $form_state['values'];
+  $response = $values['responses'];
+  $db_args = array();
+  $inserts = '';
+  $i = 0;
+  foreach ($response as $question_id => $answer_id){
+    if (strlen($inserts))
+      $inserts .= ', ';
+    $inserts .= '(:qnid' . $i . ', :uid' . $i .', :question_id' . $i .', :answer_id' . $i . ')';    
+    $new_args = array(':qnid' . $i => $values['qnid'], ':uid' . $i => $user->uid, ':question_id' . $i => $question_id, ':answer_id' . $i => $answer_id);
+    $db_args = array_merge($db_args, $new_args);
+    $i++;
+  }
+  $query = "INSERT INTO questionnaire_responses (qnid, uid, question_id, answer_id) VALUES " . $inserts;
+  db_query($query, $db_args);
+  drupal_set_message('Thank you for voting! Check out what other people thought below');
+  
+}
+
+function bt_questionnaire_add_question_form($form, &$form_state){
+  $form = array();
+  $form['#tree'] = TRUE;
+  drupal_add_js(drupal_get_path('module', 'bt_questionnaire') . '/bt_questionnaire.js');
+  $form['question_text'] = array(
+      '#type' => 'textfield',
+      '#prefix' => '<span class = "question-text">Enter new question topic:</span>'
+  );
+  $form['answers'] = array(
+      '#tree'=>TRUE,
+      '#ajax' => TRUE
+
+  );
+  
+  for ($i = 1; $i<11; $i++){
+    $extra_class = '';
+    if ($i > 2){
+      $extra_class = 'hidden';
+    }
+    $form['answers'][] = array(
+         '#type' => 'textfield',
+         '#prefix' => '<div class = "question-answer-wrapper ' . $extra_class . '"><span class = "question-text">Choice ' . $i. ':</span>',
+         '#suffix' => '</div>'
+    );
+  }
+
+  $form['answers']['add_answer'] = array(
+      '#type' => 'markup',
+      '#markup' => '<div id = "add-answer"><a class = "add-answer">Add Options</span></div>'
+  );
+  $form['submit'] = array(
+      '#type'=>'submit',
+      '#value' => t('Create')
+  );
+  
+  return $form;
+}
+
+function bt_questionnaire_add_question_form_validate($form, &$form_state){
+  $question_options = $form_state['values']['answers'];
+  $valid_options = array_filter($question_options);
+  $form_state['values']['valid_options'] = $valid_options;
+  
+  $question_text = $form_state['values']['question_text'];
+  if (empty($question_text))
+    form_set_error('questionnaire-question-text', t('You must have a question title.'));
+    
+  if(count($valid_options) < 2) {
+    form_set_error('questionnaire-questions', t('You must have at least two options.'));
+  }
+  
+}
+
+function bt_questionnaire_add_question_form_submit($form, &$form_state){
+  $values = $form_state['values'];
+  $choices = $values['valid_options'];
+
+  $question_text = $values['question_text'];
+  $question_id = db_query("INSERT INTO questionnaire_questions (title, timestamp) VALUES (:title, :timestamp)", array(':title' =>$question_text, ':timestamp' => time()), array('return' => Database::RETURN_INSERT_ID));
+  
+  $db_args = array();
+  $i = 0;
+  $inserts = '';
+  foreach ($choices as $choice){
+    if (strlen($inserts))
+      $inserts .= ' ,';
+    $inserts .= '(:id' . $i . ', :choice' . $i .')';
+    $new_args = array(':id' . $i => $question_id, ':choice' . $i => $choice);
+    $db_args = array_merge($db_args, $new_args);
+    $i++;
+  }
+  $base_query = "INSERT INTO questionnaire_questions_answers (question_id, title) VALUES " . $inserts;
+  db_query($base_query, $db_args);
+  drupal_set_message('Question Created');
+}
+
+/*
+ * Admin area to add new questions
+ */
+function bt_questionnaire_questions_view(){
+  $output = '';
+  $output = 'Add new question topic:<a class ="add-question" href = "?q=questions/add">ADD</a>';
+  $questions = bt_questionnaire_questions_get();
+  $header = array();
+  $header[] = array('data' =>'Topic');
+  $header[] = array('data' => 'Options');
+  $rows = array();
+  foreach ($questions as $qid=>$question){
+    $row = array();
+    $row[] =array('data' => $question['title']);
+    $options ='';
+    $answers = $question['answers'];
+    foreach ($answers as $answer_id => $answer){
+      $options .= $answer['title'] . '</br>';
+    }
+    $row[] = array('data' => $options);
+    $rows[] = $row;
+  }
+
+  $output .= theme('table',array('header'=> $header,'rows'=> $rows));
+  return $output;
+}
+
+/*
+ * gets list of all possible questions
+ */
+function bt_questionnaire_questions_get(){
+  $query = "SELECT q.id, q.title as 'question', qa.answer_id, qa.title as 'answer' FROM questionnaire_questions q
+            JOIN questionnaire_questions_answers qa
+            ON q.id = qa.question_id ORDER BY timestamp DESC";
+  $result = db_query($query);
+  $questions = array();
+  foreach($result as $r){
+    $questions[$r->id]['title'] = $r->question;
+    $questions[$r->id]['answers'][$r->answer_id]['title'] = $r->answer;
+  }
+  return $questions;
+}
+
+function bt_questionnaire_get_question_registry(){
+  static $questions;  
+  $result = db_query("SELECT * FROM questions");
+  while ($r = db_fetch_object($result)){
+    $question_data = unserialize($r->data);
+    $questions[$r->id] = $question_data;
+  }
+  return $questions;
+}
+
+function bt_questionnaire_create_form($form, &$form_state){
+  $form = array();  
+  $form['file'] = array(
+      '#type' => 'file',
+      '#title' => 'Photo',
+    );
+  $form['instructions'] = array(
+      '#type' => 'markup',
+      '#markup' => '<div class ="questionnaire-instructions">Choose your questions from the following list:</div>'
+  );
+  
+  $questions = bt_questionnaire_questions_get();
+  $form['questions'] = array(
+      '#tree'=>TRUE
+  );
+  
+  foreach ($questions as $qid=>$question){
+    $form['questions'][$qid]['select'] = array(
+      '#type' => 'checkbox'
+    );
+    $form['questions'][$qid]['text'] = array(
+        '#type' => 'markup',
+        '#markup' => $question['title']
+    );
+    $answers = $question['answers'];
+    $answer_text = '';
+    foreach ($answers as $answer_id => $answer){
+      $answer_text .= $answer['title'] . '</br>';
+    }
+    $form['questions'][$qid]['answer'][$answer_id]= array(
+          '#type' => 'markup',
+          '#markup' => $answer_text
+    );
+  }
+  $form['submit'] = array(
+      '#type'=>'submit',
+      '#value' => t('Create')
+  );
+  return $form;
+}
+
+function bt_questionnaire_create_form_validate($form, &$form_state){
+  $dest_dir = '../sites/default/files';
+  if ($file = file_save_upload('file', array(), 'public://', FILE_EXISTS_RENAME)){
+   $file->status = FILE_STATUS_PERMANENT;
+   file_save($file);
+   $form_state['storage']['file'] = $file;
+  } 
+  else {
+    form_set_error('file', 'File upload error');
+  } 
+  
+  
+  $questions = $form_state['values']['questions'];
+  //if (count($questions['select']) > 6)
+    //form_set_error('questions', 'You may only select up to 6 questions');
+}
+
+function bt_questionnaire_create_form_submit($form, &$form_state){
+  global $user;
+  $values = $form_state['values'];
+  $questions = $values['questions'];
+  $new_questions = array();
+  $remove_questions = array();
+  foreach ($questions as $qid => $question){
+    if ($question['select']){
+      $new_questions[$qid] = $qid;
+    }
+    else{
+      $remove_questions[$qid] = $qid;
+    }
+  }
+  
+  $file = $form_state['storage']['file'];
+  $questionnaire = new StdClass();
+  $questionnaire->type = 'bt_questionnaire';
+  //$questionnaire->field_body_images[] = array($file);
+  $questionnaire->uid = $user->uid;
+  //$questionnaire->field_image[LANGUAGE_NONE][0] = $file;
+  
+  node_save($questionnaire);
+  
+  $qid = $questionnaire->nid;
+        
+  db_query("INSERT INTO questionnaire (nid, uid, timestamp, fid) VALUES (:nid, :uid, :timestamp, :fid)", array(':nid' =>$qid, ':uid' => $user->uid, ':timestamp' => time(), ':fid' => $file->fid));
+  
+  $i = 0;
+  $inserts = '';
+  $db_args = array();
+  foreach ($new_questions as $question_id){
+    if (strlen($inserts))
+      $inserts .= ', ';
+    $inserts .= '(:nid' . $i . ', :question_id' . $i .', :active' . $i . ')';    
+    $new_args = array(':nid' . $i => $qid, ':question_id' . $i => $question_id, ':active' . $i => 1);
+    $db_args = array_merge($db_args, $new_args);
+    $i++;     
+  }
+  $question_add_q = "INSERT INTO questionnaire_components (nid, question_id, active) VALUES " . $inserts;
+  db_query($question_add_q, $db_args);
+  drupal_set_message('Questionnaire Created!');
+}
+
+function bt_questionnaire_edit_form($form, &$form_state, $uid){
+  $questionnaire = bt_questionnaire_get($uid);
+  $result = db_query("SELECT nid FROM node WHERE uid = :uid", array(':uid' => $uid));
+  foreach ($result as $row){
+    $nid = $row->nid;
+  }
+
+  foreach ($questionnaire as $qid=>$q){
+    $current_qs = $questionnaire[$qid]['questions'];
+  }
+
+  $form = array();  
+  $form['instructions'] = array(
+      '#type' => 'markup',
+      '#markup' => '<div class ="questionnaire-instructions">Make any changes to your questionnaire:</div>'
+  );
+  
+  $questions = bt_questionnaire_questions_get();
+  $form['questions'] = array(
+      '#tree'=>TRUE
+  );
+  $form['nid'] = array(
+      '#type' => 'value',
+      '#value' => $nid
+  );
+  foreach ($questions as $qid=>$question){
+    $form['questions'][$qid]['select'] = array(
+      '#type' => 'checkbox',
+      '#prefix' => '<div class = "question-wrapper">',
+      '#attributes' =>(isset($current_qs[$qid])) ? array('checked' => 'checked') : ''
+    );
+    $form['questions'][$qid]['text'] = array(
+        '#type' => 'markup',
+        '#prefix' => '<div class ="question-topic">',
+        '#markup' => $question['title'],
+        '#suffix' => '</div>'
+    );
+    $answers = $question['answers'];
+    $answer_text = '';
+    foreach ($answers as $answer_id => $answer){
+      $answer_text .= $answer['title'] . '</br>';
+    }
+    $form['questions'][$qid]['answer'][$answer_id]= array(
+          '#type' => 'markup',
+          '#markup' => $answer_text,
+          '#suffix' => '</div>'
+    );
+  }
+  $form['submit'] = array(
+      '#type'=>'submit',
+      '#value' => t('Save Changes')
+  );
+  return $form;
+}
+
+function bt_questionnaire_edit_form_validate($form, &$form_state){
+  
+  $values = $form_state['values'];
+  $questions = $values['questions'];
+  foreach ($questions as $qid => $question){
+    if ($question['select']){
+      $selected_questions[$qid] = $qid;
+    }
+  }
+
+  //make sure user selected at least 2 questions but no more than 6
+  if (count($selected_questions) < 2 || count($selected_questions) > 6)
+    form_set_error('questions', 'You must select at least 2 questions but no more than 6 questions');
+}
+
+function bt_questionnaire_edit_form_submit($form, &$form_state){
+  global $user;
+  $current_questions = bt_questionnaire_get($user->uid, TRUE);
+  $current_question = $current_questions['questions'];
+  
+  $values = $form_state['values'];
+  $nid = $values['nid'];
+  $questions = $values['questions'];
+  $new_questions = array();
+  $remove_questions = array();
+  //print_r($questions);
+  foreach ($questions as $qid => $question){
+    if ($question['select']){
+      $new_questions[$qid] = $qid;
+    }
+    else{
+      $remove_questions[':ids'] = $qid;
+    }
+  }
+  $add_query = "REPLACE INTO questionnaire_components (nid, question_id, active) VALUES";
+  $placeholders = '';
+  $db_args = array();
+  foreach ($new_questions as $qid){
+    if (strlen($placeholders))
+        $placeholders .= ', ';
+    
+    $placeholders .= '(:nid, :question_id, :active)';
+    $db_args[':nid'] = $nid;
+    $db_args[':question_id'] = $qid;
+    $db_args[':active'] = 1;
+  }
+  $add_query .= $placeholders;
+  db_query($add_query, $db_args);
+  
+  $db_args = array(':nid' =>$nid);
+  $db_args = array_merge($db_args, $remove_questions);
+  
+  db_query("UPDATE questionnaire_components SET active = 0 WHERE nid = :nid AND question_id IN(:ids)", $db_args);
+  
+  
+}
+
+
+function bt_questionnaire_get($uid = NULL, $ids_only = FALSE){
+  global $user;
+  if (!$uid)
+    $uid = $user->uid;
+  
+  $query = "SELECT n.*, qc.question_id, qq.title as 'questiontext', qa.answer_id, qa.title as 'answertext' FROM questionnaire q INNER JOIN node n 
+            ON q.nid = n.nid 
+            LEFT JOIN questionnaire_components qc
+            ON q.nid = qc.nid
+            LEFT JOIN questionnaire_questions qq
+            ON qc.question_id = qq.id
+            LEFT JOIN questionnaire_questions_answers qa
+            ON qq.id = qa.question_id
+            WHERE q.uid = :uid AND n.status = :status AND qc.active = :active";
+  $db_args = array(':uid' =>$uid, ':status' =>1, ':active' =>1);
+  
+  $result = db_query($query, $db_args);
+  $questionnaire = array();
+  if ($ids_only){
+    foreach ($result as $r){
+      $questionnaire['questions'][$r->question_id] = $r->question_id;
+      
+    }
+    return $questionnaire;
+  }
+  foreach($result as $r){
+    $questionnaire[$r->nid]['questions'][$r->question_id]['title'] = $r->questiontext;
+    $questionnaire[$r->nid]['questions'][$r->question_id]['id'] = $r->question_id;
+    $questionnaire[$r->nid]['questions'][$r->question_id]['answers'][$r->answer_id]['title'] = $r->answertext;
+    $questionnaire[$r->nid]['questions'][$r->question_id]['answers'][$r->answer_id]['id'] = $r->answer_id;
+  }
+  return $questionnaire;  
+}
+
+function bt_questionnaire_load($nodes){
+  global $user;
+  $query = "SELECT f.*, q.nid, qc.question_id, qq.title as 'questiontext', qa.answer_id, qa.title as 'answertext' FROM questionnaire q 
+            LEFT JOIN questionnaire_components qc
+            ON q.nid = qc.nid
+            LEFT JOIN questionnaire_questions qq
+            ON qc.question_id = qq.id
+            LEFT JOIN questionnaire_questions_answers qa
+            ON qq.id = qa.question_id
+            LEFT JOIN file_managed f ON
+            f.fid = q.fid
+            WHERE q.nid IN(:nids) AND qc.active = :active";
+  $db_args = array(':nids' => array_keys($nodes));
+  $db_args = array_merge($db_args, array(':active' => 1));  
+  $result = db_query($query, $db_args);
+  $questions = array();
+  $image = '';
+  foreach($result as $r){
+    $questions[$r->question_id]['title'] = $r->questiontext;
+    $questions[$r->question_id]['id'] = $r->question_id;
+    $questions[$r->question_id]['answers'][$r->answer_id]['title'] = $r->answertext;
+    $questions[$r->question_id]['answers'][$r->answer_id]['id'] = $r->answer_id;
+    $nid = $r->nid;
+    if(!$image)
+      $image = file_create_url($r->uri);
+  }
+  $nodes[$nid]->questions = $questions;
+  $nodes[$nid]->image = $image;
+}
+
+function bt_questionnaire_results($node){
+  $q = "SELECT qr.*, qa.title as 'answer_text', qq.title as 'question_text', count(qr.answer_id) as 'votes' FROM questionnaire_responses qr
+JOIN node n ON n.nid = qr.qnid 
+LEFT JOIN questionnaire_questions qq ON qq.id = qr.question_id
+LEFT JOIN questionnaire_questions_answers qa ON qa.answer_id = qr.answer_id
+WHERE qr.qnid = :qnid group by qr.answer_id;";
+  $result = db_query($q, array(':qnid' => $node->nid));
+  $votes  = array();
+  $total = array();
+  foreach ($result as $row){
+    $votes[$row->question_id]['title'] = $row->question_text;
+    $votes[$row->question_id]['answers'][$row->answer_id]['votes'] = $row->votes;
+    $votes[$row->question_id]['answers'][$row->answer_id]['title'] = $row->answer_text;
+    isset($total['questions'][$row->question_id]) ? $total['questions'][$row->question_id] += $row->votes : $total['questions'][$row->question_id] = $row->votes;
+    isset($total['answers'][$row->answer_id]) ? $total['answers'][$row->answer_id] += $row->votes : $total['answers'][$row->answer_id] = $row->votes;
+  }
+  
+  $output = '';
+  
+  foreach ($votes as $qid=>$question){
+    $header = array();
+    $header[] = array('data' =>"<p class = 'question-results-title'>" . $question['title'] . '<span class = "total-votes">' . $total['questions'][$qid] . ' total votes </span></p>', 'colspan' =>2);
+    $rows = array();
+    foreach ($question['answers'] as $aid=>$answer){
+      $row = array();
+      $perc = ($votes[$qid]['answers'][$aid]['votes']/$total['questions'][$qid]) * 100 . '%';
+      $row[] = $perc . ' of people <span class = "total-votes"> (' . $votes[$qid]['answers'][$aid]['votes'] . ' total votes) </span> SAID ' . $answer['title']; 
+      $bar_graph = '<div class = "bar"><div style="width: ' . $perc  .'"></div></div>';
+      $row[] = $bar_graph;
+      $rows[] = $row;
+      
+    }
+    $output .= theme('table',array('header'=> $header,'rows'=> $rows));
+  }
+
+  $output .="</div>";
+  
+  return $output;
+
+  //MAKE A THEME OF THE ABOVE TABLES return theme('bt_questionnaire_results', array($node, $votes, $total));
+}
+
+
+?>
