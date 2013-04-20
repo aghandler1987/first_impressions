@@ -83,7 +83,7 @@ function bt_questionnaire_menu(){
     'type' => MENU_CALLBACK,
   );
   
-  $items['questionnaire/%/edit'] = array(
+  $items['questionnaire/%node/edit'] = array(
     'title' => 'Add Questionnaire',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('bt_questionnaire_edit_form', 1),
@@ -429,8 +429,8 @@ function bt_questionnaire_create_form_submit($form, &$form_state){
   drupal_set_message('Questionnaire Created!');
 }
 
-function bt_questionnaire_edit_form($form, &$form_state, $uid){
-  $questionnaire = bt_questionnaire_get($uid);
+function bt_questionnaire_edit_form($form, &$form_state, $questionnaire){
+  /*$questionnaire = bt_questionnaire_get($uid);
   $result = db_query("SELECT nid FROM node WHERE uid = :uid", array(':uid' => $uid));
   foreach ($result as $row){
     $nid = $row->nid;
@@ -438,8 +438,9 @@ function bt_questionnaire_edit_form($form, &$form_state, $uid){
 
   foreach ($questionnaire as $qid=>$q){
     $current_qs = $questionnaire[$qid]['questions'];
-  }
-
+  }*/
+  
+  $current_questions = $questionnaire->questions;
   $form = array();  
   $form['instructions'] = array(
       '#type' => 'markup',
@@ -452,13 +453,13 @@ function bt_questionnaire_edit_form($form, &$form_state, $uid){
   );
   $form['nid'] = array(
       '#type' => 'value',
-      '#value' => $nid
+      '#value' => $questionnaire->nid
   );
   foreach ($questions as $qid=>$question){
     $form['questions'][$qid]['select'] = array(
       '#type' => 'checkbox',
       '#prefix' => '<div class = "question-wrapper">',
-      '#attributes' =>(isset($current_qs[$qid])) ? array('checked' => 'checked') : ''
+      '#attributes' =>(isset($current_questions[$qid])) ? array('checked' => 'checked') : ''
     );
     $form['questions'][$qid]['text'] = array(
         '#type' => 'markup',
@@ -521,21 +522,25 @@ function bt_questionnaire_edit_form_submit($form, &$form_state){
   $add_query = "REPLACE INTO questionnaire_components (nid, question_id, active) VALUES";
   $placeholders = '';
   $db_args = array();
+  $i = 0;
   foreach ($new_questions as $qid){
     if (strlen($placeholders))
         $placeholders .= ', ';
     
-    $placeholders .= '(:nid, :question_id, :active)';
-    $db_args[':nid'] = $nid;
-    $db_args[':question_id'] = $qid;
-    $db_args[':active'] = 1;
+    $placeholders .= '(:nid' . $i . ', :question_id' . $i .', :active' . $i . ')';
+    $db_args[':nid' . $i] = $nid;
+    $db_args[':question_id' . $i] = $qid;
+    $db_args[':active'.$i] = 1;
+    $i++;
   }
+
   $add_query .= $placeholders;
   db_query($add_query, $db_args);
   
   $db_args = array(':nid' =>$nid);
   $db_args = array_merge($db_args, $remove_questions);
   
+  if (!empty($remove_questions))
   db_query("UPDATE questionnaire_components SET active = 0 WHERE nid = :nid AND question_id IN(:ids)", $db_args);
   
   

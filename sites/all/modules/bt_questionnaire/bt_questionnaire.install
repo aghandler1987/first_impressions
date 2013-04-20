@@ -37,9 +37,8 @@ function bt_questionnaire_update_6002(){
     $create4 = "CREATE TABLE questionnaire_components(
                 nid int(11) NOT NULL,
                 question_id int(11) NOT NULL,
-                active tinyint(4) DEFAULT 1
-                INDEX nid (nid),
-                INDEX question_id (question_id)
+                active tinyint(4) DEFAULT 1,
+                PRIMARY KEY (nid, question_id)
                 )engine=InnoDB;";
     db_query($create4);
   }
