@@ -1,0 +1,7 @@
+<?php
+
+function bt_core_update_7001(){
+  $role = new stdClass();
+  $role->name = 'bobbie user';
+  user_role_save($role);
+}

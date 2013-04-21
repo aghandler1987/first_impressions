@@ -7,6 +7,7 @@ function bt_questionnaire_node_info(){
   $node_types['bt_questionnaire'] = array(
       'name' => 'Questionnaire',
       'base' => 'bt_questionnaire',
+      'type' => 'bt_questionnaire',
       'description' => 'A content type that has a user photo and a set of questions',
       'has_title' => FALSE,
       'has_body' => FALSE,
@@ -14,11 +15,12 @@ function bt_questionnaire_node_info(){
   
   return $node_types;
 }
+
 function bt_questionnaire_install(){
   $questionnaire_type = array(
     'type' => 'bt_questionnaire',
     'name' => 'bt_questionnaire',
-    'base' => 'node_content',
+    'base' => 'bt_questionnaire',
     'description' => 'Create a new questionnaire',
     'custom' => TRUE,
     'modified' => TRUE,
@@ -26,7 +28,6 @@ function bt_questionnaire_install(){
   );
 
   $questionnaire_type = node_type_set_defaults($questionnaire_type);
-  node_add_body_field($questionnaire_type);
   $status = node_type_save($questionnaire_type);
   
   $t_args = array('%name' => $questionnaire_type->name);
@@ -42,6 +43,11 @@ function bt_questionnaire_install(){
 
 function bt_questionnaire_start(){
   global $user;
+  
+  if(!user_is_logged_in()){
+    drupal_goto('login');
+  }
+  
   $result = db_query("SELECT nid FROM questionnaire WHERE uid = :uid LIMIT 1", array(':uid' =>$user->uid));
   $nid = '';
   foreach ($result as $row){
@@ -51,20 +57,27 @@ function bt_questionnaire_start(){
   print $user->uid;
   $output = '';
   if (!$nid){
-    $output .='You have no questionnaire yet.<a href = "?q=questionnaire/add">Create Questionnaire</a>';
-    return $output;
+    drupal_goto('questionnaire/add');
   }
   
-  drupal_goto('/questionnaire/' .$nid);
+  drupal_goto('questionnaire/' .$nid);
 }
 
 function bt_questionnaire_menu(){
   $items = array();
   
+  $items['survey_list'] = array(
+      'page callback' => 'bt_questionnaire_list',
+      'access callback' => TRUE,
+      'title' => 'View',
+      'type' => MENU_NORMAL_ITEM
+  );
+  
   $items['questionnaire'] = array(
     'page callback' => 'bt_questionnaire_start', 
-    'access callback' => 'user_is_logged_in',
-    'type' => MENU_CALLBACK
+    'access callback' => TRUE,
+    'title' => 'My Survey',
+    'type' => MENU_NORMAL_ITEM
   );
   
   $items['questionnaire/%node'] = array(
@@ -79,7 +92,7 @@ function bt_questionnaire_menu(){
     'title' => 'Add Questionnaire',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('bt_questionnaire_create_form'),
-    'access callback' => TRUE,
+    'access callback' => 'bt_core_is_bobbi_user',
     'type' => MENU_CALLBACK,
   );
   
@@ -87,7 +100,7 @@ function bt_questionnaire_menu(){
     'title' => 'Add Questionnaire',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('bt_questionnaire_edit_form', 1),
-    'access callback' => TRUE,
+    'access callback' => 'bt_core_is_bobbi_user',
     'type' => MENU_CALLBACK,
   );
   
@@ -95,7 +108,7 @@ function bt_questionnaire_menu(){
   $items['questions'] = array(
       'title' => 'Questions',
       'page callback' => 'bt_questionnaire_questions_view',
-      'access callback' => TRUE,
+      'access callback' => 'bt_core_is_admin',
       'type' => MENU_CALLBACK
   );
   
@@ -103,7 +116,7 @@ function bt_questionnaire_menu(){
       'title' => 'Add New Question',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('bt_questionnaire_add_question_form'),
-      'access callback' => TRUE,
+      'access callback' => 'bt_core_is_admin',
       'type' => MENU_CALLBACK
   );
     
@@ -113,7 +126,8 @@ function bt_questionnaire_menu(){
 function bt_questionnaire_view($node){ 
   global $user;
   $output = '';
-  $output .= '<div class = "picture"><img src ="' . $node->image .'"/></div>';
+  $url = image_style_url('bt_questionnaire_image', $node->image);
+  $output .= '<div class = "picture"><img src ="' . $url .'"/></div>';
   if ($node->uid == $user->uid)
     $output .='<a href = "?questionnaire/' . $node->nid . '/edit">Edit Questionnaire</a>';
   $form = drupal_get_form('bt_questionnaire_vote_form', $node);
@@ -121,6 +135,33 @@ function bt_questionnaire_view($node){
   $output .= bt_questionnaire_results($node);
   return $output;
   
+}
+
+function bt_questionnaire_get_node_cookie_name($nid){
+  return 'bt_vote_' . $nid;
+}
+
+function bt_questionnaire_set_node_cookie($nid){
+  $name = bt_questionnaire_get_node_cookie_name($nid);
+  $expire = time() + (24*60*60);
+  setcookie($name, 1, $expire, '/');
+}
+
+function bt_questionnaire_can_vote($nid){
+  global $user;
+  if(user_is_logged_in()){
+    $count = db_query("SELECT COUNT(*) as 'count' FROM questionnaire_responses WHERE qnid = :nid AND uid = :uid", array(':nid' => $nid, ':uid' => $user->uid));
+    foreach($count as $c){
+      $count = $c->count;
+      break;
+    }    
+    return $count == 0;
+  }
+  else{
+    $cookie_name = bt_questionnaire_get_node_cookie_name($nid);
+    return isset($_COOKIE[$cookie_name]);
+  }
+  return TRUE;
 }
 
 function bt_questionnaire_vote_form($form, &$form_state, $questionnaire){
@@ -369,7 +410,6 @@ function bt_questionnaire_create_form($form, &$form_state){
 }
 
 function bt_questionnaire_create_form_validate($form, &$form_state){
-  $dest_dir = '../sites/default/files';
   if ($file = file_save_upload('file', array(), 'public://', FILE_EXISTS_RENAME)){
    $file->status = FILE_STATUS_PERMANENT;
    file_save($file);
@@ -581,8 +621,9 @@ function bt_questionnaire_get($uid = NULL, $ids_only = FALSE){
   return $questionnaire;  
 }
 
-function bt_questionnaire_load($nodes){
+function bt_questionnaire_load(&$nodes){
   global $user;
+  
   $query = "SELECT f.*, q.nid, qc.question_id, qq.title as 'questiontext', qa.answer_id, qa.title as 'answertext' FROM questionnaire q 
             LEFT JOIN questionnaire_components qc
             ON q.nid = qc.nid
@@ -605,7 +646,7 @@ function bt_questionnaire_load($nodes){
     $questions[$r->question_id]['answers'][$r->answer_id]['id'] = $r->answer_id;
     $nid = $r->nid;
     if(!$image)
-      $image = file_create_url($r->uri);
+      $image = $r->uri;
   }
   $nodes[$nid]->questions = $questions;
   $nodes[$nid]->image = $image;
@@ -653,5 +694,6 @@ WHERE qr.qnid = :qnid group by qr.answer_id;";
   //MAKE A THEME OF THE ABOVE TABLES return theme('bt_questionnaire_results', array($node, $votes, $total));
 }
 
-
-?>
+function bt_questionnaire_list(){
+  return 'hello';
+}

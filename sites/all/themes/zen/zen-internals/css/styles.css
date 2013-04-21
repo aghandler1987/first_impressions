@@ -1,0 +1,23 @@
+/* 
+    Document   : styles
+    Created on : Apr 21, 2013, 11:37:58 AM
+    Author     : alex
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+root { 
+  display: block;
+}
+
+.hidden{
+  display:none!important;
+}
+
+#header{
+  display:none;
+}
+#main-menu{
+  display:none;
+}
+

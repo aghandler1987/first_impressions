@@ -1,0 +1,90 @@
+<?php
+
+/*
+ * Implementation hook_image_default_styles
+ */
+
+function bt_core_image_default_styles(){
+  $styles = array();
+  
+  $styles['bt_questionnaire_image'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale',
+        'data' => array('width' => 900, 'height' => 600),
+        'weight' => 0
+      ),
+    )
+  );
+    
+  $styles['bt_questionnaire_image_thumb'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale',
+        'data' => array('width' => 300, 'height' => 226),
+        'weight' => 0
+      ),
+    )
+  );
+  return $styles;
+}
+
+function bt_core_is_bobbi_user(){
+  global $user;
+  
+  if(user_is_anonymous()){
+    return FALSE;
+  }
+  
+  if(bt_core_is_admin()){
+    return TRUE;
+  }
+  
+  return in_array('bobbie user', $user->roles);
+}
+
+function bt_core_is_admin(){
+  global $user; 
+  
+  if(user_is_anonymous()){
+    return FALSE;
+  }
+  
+  return in_array('administrator', $user->roles);
+}
+
+function bt_core_menu(){
+  $items = array();
+  $items['login'] = array(
+      'title' => 'Login/Signup',
+      'page callback' => 'bt_core_signup',
+      'access callback' => 'user_is_anonymous',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  return $items;
+}
+
+function bt_core_signup(){
+  drupal_add_js(drupal_get_path('module', 'bt_core') . '/bt_signup.js');
+  $output = '<div id="signup-login-wrapper">';
+  $output .= '<div class="signup-login-tabs">';
+  $output .= '<div id="login-tab" class="tab active"><span>' . t('Login') . '</span></div>';
+  $output .= '<div id="signup-tab" class="tab"><span>' . t('Signup') . '</span></div>';
+  $output .= '</div>';
+  $output .= '<div class="signup-login-blocks">';
+  $output .= '<div id="login-block" class="block">' . drupal_render(drupal_get_form('user_login')) . '</div>';
+  $output .= '<div id="signup-block" class="block hidden">' . drupal_render(drupal_get_form('user_register_form')) . '</div>';
+  $output .= '</div>';
+  $output .= '</div>';
+  
+  return $output;
+}
+
+function bt_core_user_presave(&$edit, $account, $category){
+  if($account->uid == 0){
+    $role = user_role_load_by_name(('bobbie user'));
+    $edit['roles'] = array(
+        $role->rid => 'bobbie user'
+    );
+  }
+}
