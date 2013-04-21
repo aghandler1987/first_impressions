@@ -1,0 +1,56 @@
+<?php
+ // Create the default webform type.
+
+function bt_questionnaire_update_6002(){
+  if (!db_table_exists('questionnaire_responses')){
+    $create1 = "CREATE TABLE questionnaire_responses(
+            id int(11) PRIMARY KEY AUTO_INCREMENT,
+            qnid int(11) NOT NULL,
+            uid int(11) NOT NULL,
+            question_id int(11) NOT NULL,
+            answer_id int(11) NOT NULL,
+            INDEX qnid (qnid),
+            INDEX uid (uid)
+            )engine=InnoDB;";
+    db_query($create1);
+  }
+  
+  if (!db_table_exists('questionnaire')){
+    $create2 = "CREATE TABLE questionnaire(
+                nid int(11) PRIMARY KEY,
+                uid int(11) NOT NULL,
+                timestamp int(11) NOT NULL              
+                )engine=InnoDB;";
+    db_query($create2);
+  }
+  
+  if (!db_table_exists('questionnaire_questions')){
+    $create3 = "CREATE TABLE questionnaire_questions(
+                id int(11) PRIMARY KEY AUTO_INCREMENT,
+                title varchar(255) NOT NULL,
+                timestamp int(11) NOT NULL,             
+                )engine=InnoDB;";
+    db_query($create3);
+  }
+  
+  if (!db_table_exists('questionnaire_components')){
+    $create4 = "CREATE TABLE questionnaire_components(
+                nid int(11) NOT NULL,
+                question_id int(11) NOT NULL,
+                active tinyint(4) DEFAULT 1,
+                PRIMARY KEY (nid, question_id)
+                )engine=InnoDB;";
+    db_query($create4);
+  }
+  
+  if (!db_table_exists('questionnaire_questions_answers')){
+    $create5 = "CREATE TABLE questionnaire_questions_answers(
+                answer_id int(11) PRIMARY KEY AUTO_INCREMENT,
+                question_id int(11) NOT NULL,
+                title varchar(255) NOT NULL
+                INDEX question_id (question_id)
+                )engine=InnoDB;";
+    db_query($create5);
+  }
+}
+?>
