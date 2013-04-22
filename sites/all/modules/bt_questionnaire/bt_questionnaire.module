@@ -62,7 +62,7 @@ function bt_questionnaire_menu(){
   $items['survey_list'] = array(
       'page callback' => 'bt_questionnaire_list',
       'access callback' => TRUE,
-      'title' => 'View',
+      'title' => 'First Impressions',
       'type' => MENU_NORMAL_ITEM
   );
   
@@ -125,6 +125,8 @@ function bt_questionnaire_menu(){
 
 function bt_questionnaire_view($node){ 
   global $user;
+  
+  menu_set_active_item('questionnaire');  
   $output = '';
   $url = image_style_url('bt_questionnaire_image', $node->image);
   $output .= '<div class = "picture"><img class = "main-picture" src ="' . $url .'"/></div>';
@@ -458,6 +460,7 @@ function bt_questionnaire_create_access(){
 
 
 function bt_questionnaire_create_form($form, &$form_state){
+  menu_set_active_item('questionnaire');
   $form = array();  
   $photo_instructions = '<ul class = "photo-instructions">
     <li>FULL LENGTH PHOTOS IN WHICH YOUR OUTFIT IS CLEARLY VISIBLE WORK BEST!</li>
