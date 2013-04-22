@@ -641,6 +641,7 @@ function bt_questionnaire_edit_form_validate($form, &$form_state){
   
   $values = $form_state['values'];
   $questions = $values['questions'];
+
   foreach ($questions as $qid => $question){
     if ($question['select']){
       $selected_questions[$qid] = $qid;
@@ -668,7 +669,7 @@ function bt_questionnaire_edit_form_submit($form, &$form_state){
       $new_questions[$qid] = $qid;
     }
     else{
-      $remove_questions[':ids'] = $qid;
+      $remove_questions[':ids'][] = $qid;
     }
   }
   $add_query = "REPLACE INTO questionnaire_components (nid, question_id, active) VALUES";
@@ -691,7 +692,6 @@ function bt_questionnaire_edit_form_submit($form, &$form_state){
   
   $db_args = array(':nid' =>$nid);
   $db_args = array_merge($db_args, $remove_questions);
-  
   if (!empty($remove_questions))
   db_query("UPDATE questionnaire_components SET active = 0 WHERE nid = :nid AND question_id IN(:ids)", $db_args);
   

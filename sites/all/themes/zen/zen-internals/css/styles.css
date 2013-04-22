@@ -94,7 +94,7 @@ h2{
   margin-left: 5px;
 }
 
-#edit-submit{
+#edit-submit, #edit-submit--2{
   border-radius: 0;
   -moz-border-radius: 0;
   -webkit-border-radius: 0;
@@ -105,6 +105,12 @@ h2{
   padding: 5px;
   width: 150px;
 }
+
+
+#edit-submit--2{
+  width: 200px;
+}
+
 
 #questionnaire-results-wrapper{
   width: 600px;
@@ -246,4 +252,51 @@ a.user-link:hover{
 #bt-questionnaire-create-form #edit-file{
   background: #CCCCCC;
   border-radius: 10px;
+}
+
+#user-register-form .form-text, #user-login .form-text{
+  background: #CCCCCC;
+  border-radius: 5px;
+  height: 25px;
+}
+
+.signup-login-blocks, .signup-login-tabs{
+  font-family: Helvetica;
+  margin: 0
+}
+
+.signup-login-tabs{
+  border-bottom: 2px solid black;
+}
+
+.signup-login-tabs div{
+  float: left;
+  margin-right: 10px;
+  background: #ff0b84;
+  color: white;
+  border-radius: 5px 5px 0px 0px;
+  -moz-border-radius: 5px 5px 0px 0px;
+  -webkit-border-radius: 5px 5px 0px 0px;
+  padding: 5px;
+  width: 60px;
+  text-align: center;
+  height: 20px;
+  border: 2px solid black;
+  border-bottom: none;
+}
+
+.signup-login-tabs div:hover{
+  background: #ff58ab;
+  color: #CCCCCC;
+  cursor: pointer;
+  position:relative;
+  top: 2px;
+  border-bottom: none;
+}
+
+.signup-login-tabs div.active{
+  font-weight: bold;
+  position:relative;
+  top: 2px;
+  border-bottom: none;
 }
