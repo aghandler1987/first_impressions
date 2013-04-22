@@ -73,6 +73,13 @@ function bt_questionnaire_menu(){
       'type' => MENU_NORMAL_ITEM
   );
   
+  $items['view_questionnaires'] = array(
+      'page callback' => 'bt_questionnaire_list_ajax',
+      'access callback' => TRUE,
+      'title' => '',
+      'type' => MENU_CALLBACK
+  );
+  
   $items['questionnaire'] = array(
     'page callback' => 'bt_questionnaire_start', 
     'access callback' => TRUE,
@@ -201,6 +208,45 @@ function bt_questionnaire_vote_form($form, &$form_state, $questionnaire){
     );
   //}
   return $form;
+}
+
+function bt_questionnaire_list_ajax(){
+  drupal_add_js(drupal_get_path('module', 'dsh_blog') . '/dsh_blog.js');
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+  ->entityCondition('bundle', 'article')                    
+  ->propertyCondition('status',NODE_PUBLISHED, '=')
+  ->propertyOrderBy('created', 'DESC');
+  
+  $query->count = TRUE;
+  $count = $query->execute();
+
+  $max = 5;
+  $start = 0;
+  if(isset($_GET['start'])){
+    $start = $_GET['start'];
+  }
+  
+  $query->count = FALSE;
+  $query->range($start, $max);
+  $res = $query->execute();
+  
+  $nodes = entity_load('node', array_keys($res['node']));
+  $last_nid = end($nodes);
+  $last_nid = $last_nid->nid;
+  reset($nodes);
+  $out = '';
+  foreach($nodes as $nid => $node){
+    $with_border = FALSE;
+    if($last_nid != $nid){
+      $with_border = TRUE;
+    }
+    $out .= dsh_blog_item_output($node, $with_border);
+  }
+  
+  $out .= bt_core_pager($count, $start, $max, 'blog');
+  
+  return $out;
 }
 
 function bt_questionnaire_vote_form_validate($form, &$form_state){
