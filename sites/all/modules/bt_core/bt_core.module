@@ -88,3 +88,15 @@ function bt_core_user_presave(&$edit, $account, $category){
     );
   }
 }
+
+function bt_core_pager($count, $start, $max, $path){
+  $out = '<div id="pager">';
+  if(($start - $max) >= 0){
+    $out .= '<span class="newer"><span class="arrow-w arrow"></span><a href="/' . $path . '?start=' . ($start - $max) . '">Newer</a></span>';
+  }
+  if($count > ((int)$start + (int)$max)){
+    $out .= '<span class="older"><a href="/' . $path . '?start=' . ($start + $max) . '">Older</a><span class="arrow-e arrow"></span></span>';
+  }
+  $out .= '</div>';
+  return $out;
+}
