@@ -80,6 +80,12 @@ function bt_core_signup(){
   return $output;
 }
 
+function bt_core_user_login(&$edit, $account){
+  if (!isset($_POST['form_id']) || $_POST['form_id'] != 'user_pass_reset') {
+    drupal_goto('questionnaire');
+  }
+}
+
 function bt_core_user_presave(&$edit, $account, $category){
   if($account->uid == 0){
     $role = user_role_load_by_name(('bobbie user'));
