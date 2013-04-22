@@ -5,9 +5,15 @@
     Description:
         Purpose of the stylesheet follows.
 */
+*{
+  margin: 0;
+  padding: 0;
+  font-family: Helvetica;
+}
 
 root { 
   display: block;
+
 }
 
 .hidden{
@@ -21,3 +27,223 @@ root {
   display:none;
 }
 
+.breadcrumb{
+  display: none;
+}
+
+#footer{
+  display: none;
+}
+
+#search-block-form{
+  display:none;
+}
+
+.center{
+  text-align:center;
+  margin: 0 auto;
+  display: block;
+}
+
+
+#main{
+  width: 1000px!important;
+  padding: 0;
+}
+
+h2{
+  margin: 0;
+}
+#main h1, .header{
+  font-family: didot;
+  font-size: 40px;
+  text-align: center;
+  width: 500px;
+  display: block;
+  margin: 5px auto;
+}
+
+.main-picture{
+  margin: 0 auto;
+  display:block;
+}
+
+#questions-vote-wrapper{
+  margin: 0 auto;
+  width: 1000px;
+}
+
+.question-display{
+  font-size: 12px;
+  width: 33%;
+  float: left;
+  margin: 10px 0;
+}
+
+.question-display.left-float{
+
+}
+.question-display.right-float{
+
+}
+.question-display.float-center{
+
+}
+
+.form-type-radio label{
+  margin-left: 5px;
+}
+
+#edit-submit{
+  border-radius: 0;
+  -moz-border-radius: 0;
+  -webkit-border-radius: 0;
+  display:block;
+  margin: 15px auto;
+  color: #ffffff;
+  background: #ff0b84;
+  padding: 5px;
+  width: 150px;
+}
+
+#questionnaire-results-wrapper{
+  width: 600px;
+  margin: 20px auto 0 auto;
+  border: 1px solid #ff0b84;
+  font-size: 12px;
+  background: #000000;
+  color: #ffffff;
+}
+
+.results-table{
+  background: none;
+  margin: 10px auto;
+  padding: 0;
+}
+
+.results-table tr{
+  background: none;
+  border: none;
+}
+
+.results-table .bar{
+
+  display: inline-block;
+  width: 100px;
+  height: 20px;
+  background: #ffffff;
+}
+.results-table .bar-graph{
+  background: #ff0b84;
+  display:block;
+  position: relative;
+  height: 20px;
+  border-left: 1px solid;
+  border-color: white;
+}
+
+.results-table th p{
+  text-algin:center;
+  margin: 0;
+  padding: 0;
+}
+
+.results-table .total-votes{
+  font-variant: italics;
+  font-size: 10px;
+}
+.stats-row{
+  width: 300px;
+}
+
+.bar-row{
+  margin-left: 20px;
+}
+
+#bt-questionnaire-edit-form{
+
+}
+
+#bt-questionnaire-edit-form .questionnaire-instructions{
+  text-align: center;
+  margin: 15px 0;
+}
+
+#bt-questionnaire-edit-form .question-wrapper{
+  display:block;
+  font-size: 12px;
+  margin: 5px auto;
+  width: 300px;
+  
+}
+
+#bt-questionnaire-edit-form .question-wrapper .form-type-checkbox{
+  display:block;
+  margin: 0 auto;
+}
+
+#bt-questionnaire-edit-form .question-wrapper .form-type-checkbox input{
+  margin-right: 5px;
+  vertical-align: none;
+}
+
+a.user-link, a.user-link:active{
+  text-decoration:none;
+  color: #ff0b84;
+}
+
+a.user-link:hover{
+  text-decoration: underline;
+  font-weight:bold;
+}
+
+#bt-questionnaire-create-form{
+
+}
+
+#bt-questionnaire-create-form .questionnaire-instructions{
+  margin: 12px 0;
+  font-size: 12px;
+  width: 600px;
+}
+
+#bt-questionnaire-create-form .question-wrapper{
+  display:block;
+  font-size: 12px;
+  width: 300px;
+  
+}
+
+#bt-questionnaire-create-form .question-wrapper .form-type-checkbox{
+  display:block;
+  margin: 0 auto;
+}
+
+#bt-questionnaire-create-form .question-wrapper .form-type-checkbox input{
+  margin-right: 5px;
+  vertical-align: none;
+}
+
+#bt-questionnaire-create-form ol li.ordered-element{
+  font-family: Didot;
+  font-size: 30px;
+  margin: 10px 0;
+}
+
+#bt-questionnaire-create-form ul li{
+  font-family: Helvetica;
+  font-size: 12px;
+  width: 600px;
+  line-height: 18px;
+}
+
+#bt-questionnaire-create-form .submit-instructions{
+  font-size:12px;
+  margin: 12px 0;
+  width: 600px;
+}
+
+#bt-questionnaire-create-form #edit-file{
+  background: #CCCCCC;
+  border-radius: 10px;
+}

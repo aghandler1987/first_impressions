@@ -48,14 +48,7 @@ function bt_questionnaire_start(){
     drupal_goto('login');
   }
   
-  $result = db_query("SELECT nid FROM questionnaire WHERE uid = :uid LIMIT 1", array(':uid' =>$user->uid));
-  $nid = '';
-  foreach ($result as $row){
-    $nid = $row->nid;
-    break;
-  }
-  print $user->uid;
-  $output = '';
+  $nid = bt_questionnaire_has_questionnaire();
   if (!$nid){
     drupal_goto('questionnaire/add');
   }
@@ -81,7 +74,7 @@ function bt_questionnaire_menu(){
   );
   
   $items['questionnaire/%node'] = array(
-    'title' => 'Questionnaire',
+    'title' => 'What Are Your First Impressions?',
     'page callback' => 'bt_questionnaire_view',
     'page arguments' => array(1),
     'access callback' => TRUE,
@@ -92,12 +85,12 @@ function bt_questionnaire_menu(){
     'title' => 'Add Questionnaire',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('bt_questionnaire_create_form'),
-    'access callback' => 'bt_core_is_bobbi_user',
+    'access callback' => 'bt_questionnaire_create_access',
     'type' => MENU_CALLBACK,
   );
   
   $items['questionnaire/%node/edit'] = array(
-    'title' => 'Add Questionnaire',
+    'title' => 'Edit Questionnaire',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('bt_questionnaire_edit_form', 1),
     'access callback' => 'bt_core_is_bobbi_user',
@@ -127,9 +120,13 @@ function bt_questionnaire_view($node){
   global $user;
   $output = '';
   $url = image_style_url('bt_questionnaire_image', $node->image);
-  $output .= '<div class = "picture"><img src ="' . $url .'"/></div>';
-  if ($node->uid == $user->uid)
-    $output .='<a href = "?questionnaire/' . $node->nid . '/edit">Edit Questionnaire</a>';
+  $output .= '<div class = "picture"><img class = "main-picture" src ="' . $url .'"/></div>';
+  if ($node->uid == $user->uid){
+    $output .= '<div id = "questionnaire-owner-links">';
+    $output .='<a class = "edit-questionnaire user-link center" href = "?q=questionnaire/' . $node->nid . '/edit">Edit Poll</a>';
+    $output .='<a class = "delete-questionnaire user-link center" href = "?q=questionnaire/' . $node->nid . '/delete">Delete Poll</a>';
+    $output .= '</div>';
+  }
   $form = drupal_get_form('bt_questionnaire_vote_form', $node);
   $output .= drupal_render($form);
   $output .= bt_questionnaire_results($node);
@@ -168,22 +165,39 @@ function bt_questionnaire_vote_form($form, &$form_state, $questionnaire){
   global $user;
   $form = array();
   $questions = $questionnaire->questions;
-  $form['questions'] = array(
-       '#tree' => TRUE
+  $form['header'] = array(
+      '#type' => 'markup',
+      '#markup' => '<h2 class = "header">Is This Person...</h2>'
   );
+  $form['questions'] = array(
+       '#tree' => TRUE,
+      '#prefix' => '<div id = "questions-vote-wrapper" class = "clearfix">',
+      '#suffix' => '</div>'
+  );
+  $extra_class = '';
+  $i = 1;
   foreach($questions as $ques_id=>$ques){
    $answers = array();
-
+   if ($i/1 == 1){
+     $extra_class = 'left-float';
+   }
+   elseif ($i/2 == 1){
+     $extra_class = 'float-center';
+   }
+   elseif ($i/3 == 1){
+     $extra_class = 'right-float';
+   }
    foreach ($ques['answers'] as $ans_id=>$ans){
       $answers[$ans_id] = $ans['title'];
    }
 
    $form['questions'][$ques_id] = array(
-        '#prefix' => '<div id = "question-' . $ques_id . '"><span class = "question-title">' . $ques['title'] . '</span>',
+        '#prefix' => '<div class ="question-display '. $extra_class .'" id = "question-' . $ques_id . '">', //<span class = "question-title">' . $ques['title'] . '</span>',
         '#type'=>'radios',
         '#options' => $answers,
-        '#suffix' => '</div><hr>',
+        '#suffix' => '</div>',
     );
+   $i++;
   }
   $form['question_count'] = array(
       '#type' => 'value',
@@ -193,13 +207,18 @@ function bt_questionnaire_vote_form($form, &$form_state, $questionnaire){
       '#type' => 'value',
       '#value' => $questionnaire->nid
   );
-  //$already_voted    NEED TO ADD COOKIES????
-  //if (($questionnaire->uid != $user->uid) || ($already_voted)){
+
+  if (($questionnaire->uid != $user->uid) || bt_questionnaire_can_vote($questionnaire->nid)){
     $form['submit'] = array(
-      '#type'=>'submit',
-      '#value' => t('Vote!')
+      '#type'=>'submit',  
+      '#value' => t('Submit')
     );
-  //}
+  }
+  
+  $form['break'] = array(
+      '#type' => 'markup',
+      '#markup' => '<hr>'
+  );
   return $form;
 }
 
@@ -368,15 +387,50 @@ function bt_questionnaire_get_question_registry(){
   return $questions;
 }
 
+function bt_questionnaire_has_questionnaire($uid = NULL){
+  global $user;
+  if (!$uid)
+    $uid = $user->uid;
+  
+  $result = db_query("SELECT q.nid FROM questionnaire q LEFT JOIN node n ON q.nid = n.nid WHERE q.uid = :uid AND n.status = 1 LIMIT 1", array(':uid' =>$uid));
+  $nid = '';
+  foreach ($result as $row){
+    $nid = $row->nid;
+    break;
+  }
+  
+  if ($nid)
+    return $nid;
+  
+  return FALSE;
+}
+
+function bt_questionnaire_create_access(){
+  return !bt_questionnaire_has_questionnaire() && bt_core_is_bobbi_user();
+}
+
+
+
 function bt_questionnaire_create_form($form, &$form_state){
   $form = array();  
+  $photo_instructions = '<ul class = "photo-instructions">
+    <li>FULL LENGTH PHOTOS IN WHICH YOUR OUTFIT IS CLEARLY VISIBLE WORK BEST!</li>
+    <li>KEEP IN MIND THIS PHOTO AND FEEDBACK WILL BE PUBLIC.</li>
+    <li>PLEASE AVOID USING HEADSHOTS, GROUP PHOTOS, AND DARK OR GRAINY IMAGES TO ENSURE THAT YOU RECEIVE ACCURATE FEEDBACK.</li>
+    </ul>';
   $form['file'] = array(
       '#type' => 'file',
-      '#title' => 'Photo',
+      '#size' => 40,
+      '#prefix' => '<ol class = "questionnaire-ordered-list"><li class = "ordered-element">Upload Your Photo</li>' . $photo_instructions,
     );
+  $form['gender'] = array(
+        '#type'=>'radios',
+        '#options' => array('M' => 'Male', 'F' => 'Female'),
+        '#title' => 'Please select your gender:'
+  );
   $form['instructions'] = array(
       '#type' => 'markup',
-      '#markup' => '<div class ="questionnaire-instructions">Choose your questions from the following list:</div>'
+      '#markup' => '<li class = "ordered-element">Pick Your Poll Questions</li><div class ="questionnaire-instructions">YOU MAY SELECT UP TO SIX. THE PUBLIC WILL VOTE ON THESE CHARACTERISTICS</div>'
   );
   
   $questions = bt_questionnaire_questions_get();
@@ -385,26 +439,28 @@ function bt_questionnaire_create_form($form, &$form_state){
   );
   
   foreach ($questions as $qid=>$question){
-    $form['questions'][$qid]['select'] = array(
-      '#type' => 'checkbox'
-    );
-    $form['questions'][$qid]['text'] = array(
-        '#type' => 'markup',
-        '#markup' => $question['title']
-    );
     $answers = $question['answers'];
-    $answer_text = '';
-    foreach ($answers as $answer_id => $answer){
-      $answer_text .= $answer['title'] . '</br>';
+    $answer_text = ''; 
+    if (count($answers) < 3){
+      foreach ($answers as $answer_id => $answer){   
+        if (strlen($answer_text))
+          $answer_text .= ' OR ';
+        $answer_text .= $answer['title'];
+      }
     }
-    $form['questions'][$qid]['answer'][$answer_id]= array(
-          '#type' => 'markup',
-          '#markup' => $answer_text
+    $form['questions'][$qid]['select'] = array(
+      '#type' => 'checkbox',
+      '#prefix' => '<div class = "question-wrapper">',
+      '#title' =>strlen($answer_text) ? $answer_text : $question['title'],
+      '#suffix' => '</div>'
     );
   }
+  $submit_instructions = '<div class ="submit-instructions">ONCE YOU CLICK THE BUTTON, YOUR PHOTO WILL BE POSTED
+    TO YOUR PUBLIC POLL PAGE. YOU CAN CHECK BACK TO THIS PAGE AS OFTEN AS YOU\'D LIKE TO SEE WHAT THE BT COMMUNITY THINKS OF YOU.</div></ol>';
   $form['submit'] = array(
+      '#prefix' => '<li class = "ordered-element">Finish!</li>' . $submit_instructions,
       '#type'=>'submit',
-      '#value' => t('Create')
+      '#value' => t('Go!')
   );
   return $form;
 }
@@ -419,10 +475,19 @@ function bt_questionnaire_create_form_validate($form, &$form_state){
     form_set_error('file', 'File upload error');
   } 
   
+  if (!isset($form_state['values']['gender']))
+    form_set_error('gender', 'Please select a gender');
   
   $questions = $form_state['values']['questions'];
-  //if (count($questions['select']) > 6)
-    //form_set_error('questions', 'You may only select up to 6 questions');
+  foreach ($questions as $qid => $question){
+    if ($question['select']){
+      $selected_questions[$qid] = $qid;
+    }
+  }
+
+  //make sure user selected at least 2 questions but no more than 6
+  if (count($selected_questions) < 2 || count($selected_questions) > 6)
+    form_set_error('questions', 'You must select at least 2 questions but no more than 6 questions');
 }
 
 function bt_questionnaire_create_form_submit($form, &$form_state){
@@ -450,8 +515,8 @@ function bt_questionnaire_create_form_submit($form, &$form_state){
   node_save($questionnaire);
   
   $qid = $questionnaire->nid;
-        
-  db_query("INSERT INTO questionnaire (nid, uid, timestamp, fid) VALUES (:nid, :uid, :timestamp, :fid)", array(':nid' =>$qid, ':uid' => $user->uid, ':timestamp' => time(), ':fid' => $file->fid));
+  $gender = $values['gender'];      
+  db_query("INSERT INTO questionnaire (nid, uid, timestamp, fid, gender) VALUES (:nid, :uid, :timestamp, :fid, :gender)", array(':nid' =>$qid, ':uid' => $user->uid, ':timestamp' => time(), ':fid' => $file->fid, ':gender' => $gender));
   
   $i = 0;
   $inserts = '';
@@ -466,7 +531,8 @@ function bt_questionnaire_create_form_submit($form, &$form_state){
   }
   $question_add_q = "INSERT INTO questionnaire_components (nid, question_id, active) VALUES " . $inserts;
   db_query($question_add_q, $db_args);
-  drupal_set_message('Questionnaire Created!');
+  drupal_set_message('You Poll has been succesfully created!');
+  drupal_goto('?q=questionnaire');
 }
 
 function bt_questionnaire_edit_form($form, &$form_state, $questionnaire){
@@ -482,9 +548,13 @@ function bt_questionnaire_edit_form($form, &$form_state, $questionnaire){
   
   $current_questions = $questionnaire->questions;
   $form = array();  
+  $form['return-link'] = array(
+      '#type' => 'markup',
+      '#markup' => '<a class = "user-link center" href = "?q=questionnaire/' . $questionnaire->nid . '">Return to Poll</a>'
+  );
   $form['instructions'] = array(
       '#type' => 'markup',
-      '#markup' => '<div class ="questionnaire-instructions">Make any changes to your questionnaire:</div>'
+      '#markup' => '<div class ="questionnaire-instructions">Feel free to change any of your display questions:</div>'
   );
   
   $questions = bt_questionnaire_questions_get();
@@ -496,27 +566,23 @@ function bt_questionnaire_edit_form($form, &$form_state, $questionnaire){
       '#value' => $questionnaire->nid
   );
   foreach ($questions as $qid=>$question){
+        $answers = $question['answers'];
+    $answer_text = ''; 
+    if (count($answers) < 3){
+      foreach ($answers as $answer_id => $answer){   
+        if (strlen($answer_text))
+          $answer_text .= ' OR ';
+        $answer_text .= $answer['title'];
+      }
+    }
     $form['questions'][$qid]['select'] = array(
       '#type' => 'checkbox',
       '#prefix' => '<div class = "question-wrapper">',
-      '#attributes' =>(isset($current_questions[$qid])) ? array('checked' => 'checked') : ''
+      '#title' => strlen($answer_text) ? $answer_text : $question['title'],
+      '#attributes' =>(isset($current_questions[$qid])) ? array('checked' => 'checked') : '',
+      '#suffix' => '</div>'
     );
-    $form['questions'][$qid]['text'] = array(
-        '#type' => 'markup',
-        '#prefix' => '<div class ="question-topic">',
-        '#markup' => $question['title'],
-        '#suffix' => '</div>'
-    );
-    $answers = $question['answers'];
-    $answer_text = '';
-    foreach ($answers as $answer_id => $answer){
-      $answer_text .= $answer['title'] . '</br>';
-    }
-    $form['questions'][$qid]['answer'][$answer_id]= array(
-          '#type' => 'markup',
-          '#markup' => $answer_text,
-          '#suffix' => '</div>'
-    );
+
   }
   $form['submit'] = array(
       '#type'=>'submit',
@@ -584,6 +650,13 @@ function bt_questionnaire_edit_form_submit($form, &$form_state){
   db_query("UPDATE questionnaire_components SET active = 0 WHERE nid = :nid AND question_id IN(:ids)", $db_args);
   
   
+}
+
+function bt_questionnaire_delete($node){
+  if ($node == 0)
+    return;
+  
+  db_query("UPDATE node SET status = 0 WHERE nid = :nid", array(':nid' => $node->nid));
 }
 
 
@@ -669,25 +742,26 @@ WHERE qr.qnid = :qnid group by qr.answer_id;";
     isset($total['answers'][$row->answer_id]) ? $total['answers'][$row->answer_id] += $row->votes : $total['answers'][$row->answer_id] = $row->votes;
   }
   
-  $output = '';
+  $output = '<div id = "questionnaire-results-wrapper">';
+  $output .= '<h2 class = "header">Results</h2>';
   
   foreach ($votes as $qid=>$question){
     $header = array();
-    $header[] = array('data' =>"<p class = 'question-results-title'>" . $question['title'] . '<span class = "total-votes">' . $total['questions'][$qid] . ' total votes </span></p>', 'colspan' =>2);
+    $header[] = array('data' =>'<p class = "question-results-title"><span class = "total-question-votes">' . $total['questions'][$qid] . ' total votes </span></p>', 'colspan' =>2);
     $rows = array();
     foreach ($question['answers'] as $aid=>$answer){
       $row = array();
-      $perc = ($votes[$qid]['answers'][$aid]['votes']/$total['questions'][$qid]) * 100 . '%';
-      $row[] = $perc . ' of people <span class = "total-votes"> (' . $votes[$qid]['answers'][$aid]['votes'] . ' total votes) </span> SAID ' . $answer['title']; 
-      $bar_graph = '<div class = "bar"><div style="width: ' . $perc  .'"></div></div>';
-      $row[] = $bar_graph;
+      $perc = round(($votes[$qid]['answers'][$aid]['votes']/$total['questions'][$qid]) * 100) . '%';
+      $row[] = array('data' => $perc . ' <span class = "total-votes"> (' . $votes[$qid]['answers'][$aid]['votes'] . ' total votes) </span> SAID ' . $answer['title'], 'class' =>'stats-row'); 
+      $bar_graph = '<div class = "bar"><div class = "bar-graph"style="width: ' . $perc  .'"></div></div>';
+      $row[] = array('data'=> $bar_graph, 'class' => 'bar-row');
       $rows[] = $row;
       
     }
-    $output .= theme('table',array('header'=> $header,'rows'=> $rows));
+    $output .= theme('table',array('header'=> $header,'rows'=> $rows, 'sticky' => FALSE, 'attributes' =>array('class' => 'results-table')));
   }
 
-  $output .="</div>";
+  $output .="</div></div>";
   
   return $output;
 

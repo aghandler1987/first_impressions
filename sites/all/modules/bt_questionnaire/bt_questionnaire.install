@@ -54,4 +54,11 @@ function bt_questionnaire_update_7001(){
     db_query($create5);
   }
 }
+
+function bt_questionnaire_update_7002(){
+  if (!db_column_exists('questionnaire', 'gender')){
+    db_query("ALTER TABLE questionnaire ADD column gender VARCHAR(1)");
+    
+  }
+}
 ?>
