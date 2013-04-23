@@ -107,6 +107,21 @@ h2{
   display:block;
 }
 
+#bt-questionnaire-vote-form{
+  width: 700px;
+}
+#questionnaire-middle{
+  width: 700px;
+}
+
+#questionnaire-middle #social-links{
+  width: 150px;
+}
+
+#questionnaire-middle #view-more{
+  width: 180px;
+}
+
 #questions-vote-wrapper{
   margin: 0 auto;
   width: 600px;
@@ -244,13 +259,13 @@ a.user-link:hover{
 }
 
 #bt-questionnaire-create-form{
-width: 720px;
+width: 710px;
 }
 
 #bt-questionnaire-create-form .questionnaire-instructions{
   margin: 12px 0;
   font-size: 12px;
-  width: 720px;
+  width: 710px;
 }
 
 #bt-questionnaire-create-form .question-wrapper{
@@ -270,6 +285,17 @@ width: 720px;
   vertical-align: none;
 }
 
+#bt-questionnaire-create-form .questionnaire-ordered-list{
+  width: 650px;
+}
+#bt-questionnaire-create-form .photo-instructions, #bt-questionnaire-create-form .photo-instructions li{
+  width: 600px;
+}
+
+#bt-questionnaire-create-form .submit-instructions{
+  width: 600px;
+}
+
 #bt-questionnaire-create-form ol li.ordered-element{
   font-family: Didot;
   font-size: 30px;
@@ -286,7 +312,7 @@ width: 720px;
 #bt-questionnaire-create-form .submit-instructions{
   font-size:12px;
   margin: 12px 0;
-  width: 720px;
+  width: 710px;
 }
 
 #bt-questionnaire-create-form #edit-file{
