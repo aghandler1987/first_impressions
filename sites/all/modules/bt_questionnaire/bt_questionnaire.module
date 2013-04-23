@@ -269,23 +269,33 @@ function bt_questionnaire_list_ajax(){
   
   $nodes = entity_load('node', array_keys($res['node']));
   $nids = array_keys($nodes);
-  $res = db_query("SELECT qnid, COUNT(*) FROM questionnaire_responses WHERE qnid IN(:nids) GROUP BY qnid", array(':nids' => $nids));
+  $res = db_query("SELECT qnid, COUNT(*) as 'num_votes' FROM questionnaire_responses WHERE qnid IN(:nids) GROUP BY qnid", array(':nids' => $nids));
+  $num_votes = array();
+  foreach($res as $count_row){
+    $num_votes[$count_row->qnid] = $count_row->num_votes;
+  }
   
   $out = '';
   $rows = array();
   $counter = 0;
   foreach($nodes as $nid => $node){
+    $num_subs = ceil($num_votes[$nid] / count($node->questions));
     $extra_class = '';
     if($counter % 3 == 0){
       $extra_class = 'dark';
     }
     $row_disp = '<a href="/questionnaire/' . $nid . '">';
     $row_disp .= '<div class="image-item"><img src="' . image_style_url('bt_questionnaire_image_thumb', $node->image) . '"/></div>';
+    $row_disp .= '<span class="meta">Uploaded on ' . date('F j, Y', $node->created) . '</span>';
+    if($num_subs > 0){
+      $num_vote_str = format_plural($num_subs, '@count person has voted', '@count people have voted');
+      $row_disp .= '<span class="meta">' . $num_vote_str . '</span>';      
+    }
     $row_disp .= '</a>';
     $rows[] = array('data' => $row_disp, 'class' => array('q-list-item ' . $extra_class));
     $counter ++;
   }
-  $out .= '<div id="q-list-wrapper">' . theme('item_list', array('items' => $rows)) . '</div>';
+  $out .= '<div id="q-list-wrapper">' . theme('item_list', array('items' => $rows, 'attributes' => array('id' => 'first-impression-list'))) . '</div>';
   $out .= bt_core_pager($count, $start, $max, 'q_list_ajax');
   while(ob_end_clean());
   print $out;
