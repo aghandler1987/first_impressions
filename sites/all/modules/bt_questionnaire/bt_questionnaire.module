@@ -150,7 +150,7 @@ function bt_questionnaire_view($node){
   $output .= bt_core_get_social_links();
   $output .='</div>';
   $output .= '<div id = "view-more">';
-  $output .= '<a href = "/survey_list"class = "view-more"><img src = "sites/all/themes/zen/zen-internals/images/arrow.jpg"></a>';
+  $output .= '<a href = "/survey_list"class = "view-more"><img src = "/sites/all/themes/zen/zen-internals/images/arrow.jpg"></a>';
   $output .= '<p class = "view-more-questions">VIEW MORE PHOTOS!</p>';
   $output .= '</div></div>';
   
