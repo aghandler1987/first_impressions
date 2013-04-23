@@ -1,5 +1,7 @@
 (function ($) {
 Drupal.behaviors.btQuestionnaireQuestions = {
+  ajaxImage : null,
+  wrapperObj : null,
   attach: function(context, settings){
     $('#add-answer:not(.questionnaireQuestions-processed)', context).addClass('questionnaireQuestions-processed').each(function(){
       $(this).click(function(){
@@ -24,20 +26,31 @@ Drupal.behaviors.btQuestionnaireQuestions = {
     });
   
     $('#results-wrapper:not(.questionnaireQuestions-processed)', context).addClass('questionnaireQuestions-processed').each(function(){
-      var ajaxImage = null;
-      var wrapperObj = $(this);
-      Drupal.behaviors.btQuestionnaireQuestions.ajaxQList(function(data){
-        ajaxImage = $('.ajax-loader', wrapperObj).detach();
-        wrapperObj.append(data);
+
+      Drupal.behaviors.btQuestionnaireQuestions.wrapperObj = $(this);
+      var wrapperObj = Drupal.behaviors.btQuestionnaireQuestions.wrapperObj;
+      Drupal.behaviors.btQuestionnaireQuestions.ajaxImage = $('.ajax-loader', wrapperObj).detach();
+      Drupal.behaviors.btQuestionnaireQuestions.ajaxQList('/q_list_ajax', wrapperObj);
+    });
+    $('#pager a:not(.questionnaireQuestions-processed)', context).addClass('questionnaireQuestions-processed').each(function(){
+      $(this).click(function(e){
+        e.stopPropagation();
+        Drupal.behaviors.btQuestionnaireQuestions.ajaxQList($(this).attr('href'), Drupal.behaviors.btQuestionnaireQuestions.wrapperObj);
+        return false;
       })
+        
     })
   },
-  ajaxQList : function(callback){
+  ajaxQList : function(urlStr, wrapperObj){
+    wrapperObj.empty();
+    wrapperObj.append(Drupal.behaviors.btQuestionnaireQuestions.ajaxImage);
     $.ajax({
       dataType : 'html',
-      url : '/q_list_ajax',
+      url : urlStr,
       success : function(data){
-        callback(data);
+        wrapperObj.empty();
+        wrapperObj.append(data);
+        Drupal.attachBehaviors();
       }
     })
   }

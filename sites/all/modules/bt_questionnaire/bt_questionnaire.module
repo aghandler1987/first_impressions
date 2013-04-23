@@ -273,14 +273,20 @@ function bt_questionnaire_list_ajax(){
   
   $out = '';
   $rows = array();
+  $counter = 0;
   foreach($nodes as $nid => $node){
+    $extra_class = '';
+    if($counter % 3 == 0){
+      $extra_class = 'dark';
+    }
     $row_disp = '<a href="/questionnaire/' . $nid . '">';
     $row_disp .= '<div class="image-item"><img src="' . image_style_url('bt_questionnaire_image_thumb', $node->image) . '"/></div>';
     $row_disp .= '</a>';
-    $rows[] = array('data' => $row_disp, 'class' => array('q-list-item'));
+    $rows[] = array('data' => $row_disp, 'class' => array('q-list-item ' . $extra_class));
+    $counter ++;
   }
   $out .= '<div id="q-list-wrapper">' . theme('item_list', array('items' => $rows)) . '</div>';
-  $out .= bt_core_pager($count, $start, $max, 'view_questionnaires');
+  $out .= bt_core_pager($count, $start, $max, 'q_list_ajax');
   while(ob_end_clean());
   print $out;
   exit;
@@ -866,10 +872,6 @@ WHERE qr.qnid = :qnid group by qr.answer_id;";
 function bt_questionnaire_list(){
   drupal_add_js(drupal_get_path('module', 'bt_questionnaire') . '/bt_questionnaire.js');
   $output = '';
-  $output .= '<div id="filter-controls-wrapper">';
-  $output .= '<div class="gender-filter">';
-  $output .= '</div>';
-  $output .= '</div>';
   $output .= '<div id="results-wrapper"><img class="ajax-loader" src="sites/all/themes/zen/zen-internals/images/ajax-loader.gif"/></div>';
   return $output;
 }
