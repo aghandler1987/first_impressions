@@ -157,6 +157,12 @@
       <?php endif; ?>
 
       <?php print render($page['navigation']); ?>
+      <?php if(user_is_logged_in()){ ?>
+      <span id="user-login-logout"><a href="/user/logout">Logout</a></span>
+      <?php }
+      else { ?>
+      <span id="user-login-logout"><a href="/login">Login</a></span>
+      <?php } ?>
 
     </div><!-- /#navigation -->
 

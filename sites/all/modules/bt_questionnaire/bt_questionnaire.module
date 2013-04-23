@@ -125,8 +125,11 @@ function bt_questionnaire_menu(){
 
 function bt_questionnaire_view($node){ 
   global $user;
-  drupal_add_js(drupal_get_path('module', 'bt_questionnaire') . '/bt_questionnaire.js');
-  menu_set_active_item('questionnaire');  
+
+  if($node->uid == $user->uid){
+   menu_set_active_item('questionnaire');    
+  }
+
   $output = '';
   $url = image_style_url('bt_questionnaire_image', $node->image);
   $output .= '<div class = "picture"><img class = "main-picture" src ="' . $url .'"/></div>';
@@ -178,7 +181,7 @@ function bt_questionnaire_can_vote($nid){
   }
   else{
     $cookie_name = bt_questionnaire_get_node_cookie_name($nid);
-    return isset($_COOKIE[$cookie_name]);
+    return !isset($_COOKIE[$cookie_name]);
   }
   return TRUE;
 }
@@ -230,7 +233,7 @@ function bt_questionnaire_vote_form($form, &$form_state, $questionnaire){
       '#value' => $questionnaire->nid
   );
 
-  if (($questionnaire->uid != $user->uid) || bt_questionnaire_can_vote($questionnaire->nid)){
+  if ($questionnaire->uid != $user->uid && bt_questionnaire_can_vote($questionnaire->nid)){
     $form['submit'] = array(
       '#type'=>'submit',  
       '#value' => t('Submit')
@@ -317,6 +320,9 @@ function bt_questionnaire_vote_form_submit($form, &$form_state){
   db_query($query, $db_args);
   drupal_set_message('Thank you for voting! Check out what other people thought below');
   
+  if(!user_is_logged_in()){
+    bt_questionnaire_set_node_cookie($values['qnid']);
+  }
 }
 
 function bt_questionnaire_add_question_form($form, &$form_state){
