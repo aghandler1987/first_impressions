@@ -75,10 +75,13 @@ root {
 
 
 #main{
-  width: 1000px!important;
+  width: 600px!important;
   padding: 0;
-}
 
+}
+#content{
+    margin-top: 40px;
+}
 h2{
   margin: 0;
 }
@@ -86,7 +89,7 @@ h2{
   font-family: didot;
   font-size: 40px;
   text-align: center;
-  width: 500px;
+  width: 400px;
   display: block;
   margin: 5px auto;
 }
@@ -98,7 +101,7 @@ h2{
 
 #questions-vote-wrapper{
   margin: 0 auto;
-  width: 1000px;
+  width: 600px;
 }
 
 .question-display{
@@ -141,7 +144,7 @@ h2{
 
 
 #questionnaire-results-wrapper{
-  width: 600px;
+  width: 400px;
   margin: 20px auto 0 auto;
   border: 1px solid #ff0b84;
   font-size: 12px;
@@ -151,13 +154,14 @@ h2{
 
 .results-table{
   background: none;
-  margin: 10px auto;
+  margin: 10px 10px;
   padding: 0;
 }
 
 .results-table tr{
   background: none;
   border: none;
+  padding: 5px;
 }
 
 .results-table .bar{
@@ -286,6 +290,7 @@ a.user-link:hover{
   background: #CCCCCC;
   border-radius: 5px;
   height: 25px;
+  width: 400px;
 }
 
 .signup-login-blocks, .signup-login-tabs{

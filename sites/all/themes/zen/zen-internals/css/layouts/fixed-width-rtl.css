@@ -14,7 +14,7 @@
    * this is the standards-compliant way to do that. */
   margin-left: auto;
   margin-right: auto;
-  width: 980px;
+  width: 600px;
 }
 
 /*
@@ -72,7 +72,7 @@
   position: absolute;
   top: 0; /* Move the navbar up inside #main's padding. */
   height: 3em;
-  width: 980px;
+  width: 600px;
 }
 
 /*
@@ -80,7 +80,7 @@
  */
 
 #content {
-  width: 980px;
+  width: 600px;
 }
 
 /*

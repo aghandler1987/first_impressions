@@ -17,9 +17,7 @@
 .region-bottom {
   /* For screen sizes larger than 1200px, prevent excessively long lines of text
      by setting a max-width. */
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 1200px;
+  max-width: 600px;
 }
 
 /*
@@ -94,18 +92,20 @@
    * The layout when there is only one sidebar, the left one.
    */
 
+   /*
   .sidebar-first #content { /* Span 2 columns, starting in 2nd column from left. */
-    float: left;
+   /* float: left;
     width: 66.667%;
     margin-left: 33.333%;
     margin-right: -100%;
   }
   .sidebar-first .region-sidebar-first { /* Span 1 column, starting in 1st column from left. */
-    float: left;
+   /* float: left;
     width: 33.333%;
     margin-left: 0%;
     margin-right: -33.333%;
   }
+  */
 
   /*
    * The layout when there is only one sidebar, the right one.
@@ -202,18 +202,18 @@
    * The layout when there is only one sidebar, the left one.
    */
 
-  .sidebar-first #content { /* Span 4 columns, starting in 2nd column from left. */
-    float: left;
+  /*.sidebar-first #content { /* Span 4 columns, starting in 2nd column from left. */
+   /* float: left;
     width: 80%;
     margin-left: 20%;
-    margin-right: -100%;
-  }
+    margin-right: -100%;*/
+  /*}
   .sidebar-first .region-sidebar-first { /* Span 1 column, starting in 1st column from left. */
-    float: left;
+   /* float: left;
     width: 20%;
     margin-left: 0%;
     margin-right: -20%;
-  }
+  }*/
 
   /*
    * The layout when there is only one sidebar, the right one.

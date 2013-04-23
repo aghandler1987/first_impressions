@@ -110,9 +110,9 @@ function bt_core_pager($count, $start, $max, $path){
 function bt_core_get_social_links(){
   $output = '';
   $output .= '<ul class = "social">';
-  $output .= '<li><a href = "http://www.facebook.com/sharer/sharer.php?u=http://www.bobbie.com/firstimpressions" target="_blank" class = "facebook"><img src = "sites/all/themes/images/fb.jpg"></a></li>';
-  $output .= '<li><a href = "http://twitter.com/share?text=An%20Awesome%20Link&url=http://www.bobbie.com/firstimpressions" target="_blank" class = "twitter"><img src = "sites/all/themes/images/twitter.jpg"></a></li>';
-  $output .= '<li><a href = "mailto:asst@bobbie.com"class = "email"><img src = "sites/all/themes/images/email.jpg"></a></li>';
+  $output .= '<li><a href = "http://www.facebook.com/sharer.php?s=100&p[title]=What\'s%20Your%20First%20Impression?&p[url]=http://www.bobbie.com/firstimpressions&p[images][0]=http://bobbie.com/wp-content/themes/bobbie-book-2013/img/i_header.jpg" target="_blank" class = "facebook"><img src = "sites/all/themes/zen/zen-internals/images/fb.jpg"></a></li>';
+  $output .= '<li><a href = "http://twitter.com/share?text=What\'s%20Your%20First%20Impression?&url=http://www.bobbie.com/firstimpressions" target="_blank" class = "twitter"><img src = "sites/all/themes/zen/zen-internals/images/twitter.jpg"></a></li>';
+  $output .= '<li><a href = "mailto:test@test.com?subject=First%20Impressions&amp;body=What%20first%20impression%20do%20I%20make%3F%20Let%20me%20know%20what%20you%20think%2C%20and%20then%20post%20your%20own%20photo%20at%20%3Ca%20href%3D%22Bobbie.com%2FFirstImpressions%22%3EBobbie.com%2FFirstImpression%3C%2Fa%3E!"class = "email"><img src = "sites/all/themes/zen/zen-internals/images/email.jpg"></a></li>';
   $output .= '</ul>';
   $output .= '<span class = "share-text">SHARE THIS PAGE!</span>';
   return $output;
