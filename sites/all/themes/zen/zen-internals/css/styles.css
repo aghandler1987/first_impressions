@@ -517,3 +517,5 @@ margin: 0;
 
 
 #user-login-logout{float:right;}
+.description{text-align:center;font-family:didot;}
+.description a{color:#FF0B84;}

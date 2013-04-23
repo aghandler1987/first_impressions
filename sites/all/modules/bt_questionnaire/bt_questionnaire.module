@@ -881,7 +881,8 @@ WHERE qr.qnid = :qnid group by qr.answer_id;";
 
 function bt_questionnaire_list(){
   drupal_add_js(drupal_get_path('module', 'bt_questionnaire') . '/bt_questionnaire.js');
-  $output = '';
+  drupal_set_title("What Are Your First Impressions?");
+  $output = '<p class="description">The opportunity to make a good first impression arises far more often than you might think! Whether you\'re applying for a loan, interviewing for a job, or going on a blind date, there are countless instances when it\'s in your best interest to look your best... but how do you ever really know what first impression you make? <a href="/questionnaire">Sign up here</a>, post your photo and find out!</p>';
   $output .= '<div id="results-wrapper"><img class="ajax-loader" src="sites/all/themes/zen/zen-internals/images/ajax-loader.gif"/></div>';
   return $output;
 }
