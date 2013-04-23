@@ -72,7 +72,9 @@ root {
   display: block;
 }
 
-
+/*
+ * Undo this to make the page responsive again
+ */
 #main{
   width: 720px!important;
   padding: 0;
@@ -81,7 +83,13 @@ root {
   margin-left : 0px!important;
   width:720px!important;
 }
-
+#content{
+  margin-top : 3em;
+  padding-left:0px!important;
+}
+/*
+ * End responsive hacks
+ */
 h2{
   margin: 0;
 }
@@ -435,12 +443,13 @@ margin: 0;
 
 #q-list-wrapper ul{
   list-style-type: none;
+  padding-left:0px!important;
 }
 #q-list-wrapper li{
   width : 340px;
   height : 340px;
   float : left;
-  margin : 10px 10px;
+  margin : 5px 5px;
   border : 1px solid #ff0b84;
   background-color : #ddd;
 }
