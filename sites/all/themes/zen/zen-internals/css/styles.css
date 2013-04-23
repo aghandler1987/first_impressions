@@ -57,6 +57,7 @@ root {
   margin-right: 10px;
   background: #ff0b84;
   border-radius: 5px;
+  width: 100px;
 }
 #navigation ul.menu li:hover{
   background: #ff58ab;
@@ -239,13 +240,13 @@ a.user-link:hover{
 }
 
 #bt-questionnaire-create-form{
-
+width: 720px;
 }
 
 #bt-questionnaire-create-form .questionnaire-instructions{
   margin: 12px 0;
   font-size: 12px;
-  width: 600px;
+  width: 720px;
 }
 
 #bt-questionnaire-create-form .question-wrapper{
@@ -274,14 +275,14 @@ a.user-link:hover{
 #bt-questionnaire-create-form ul li{
   font-family: Helvetica;
   font-size: 12px;
-  width: 600px;
+  width: 720px;
   line-height: 18px;
 }
 
 #bt-questionnaire-create-form .submit-instructions{
   font-size:12px;
   margin: 12px 0;
-  width: 600px;
+  width: 720px;
 }
 
 #bt-questionnaire-create-form #edit-file{
