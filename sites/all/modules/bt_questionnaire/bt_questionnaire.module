@@ -125,7 +125,7 @@ function bt_questionnaire_menu(){
 
 function bt_questionnaire_view($node){ 
   global $user;
-
+  drupal_add_js(drupal_get_path('module', 'bt_questionnaire') . '/bt_questionnaire.js'); 
   if($node->uid == $user->uid){
    menu_set_active_item('questionnaire');    
   }
