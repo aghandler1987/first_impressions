@@ -39,6 +39,34 @@ root {
   display:none;
 }
 
+#navigation ul.menu li a{
+  text-decoration: none;
+  padding: 5px;
+  height: 25px;
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+  color: white;
+}
+
+#navigation ul.menu li a:hover{
+  color: #CCCCCC;
+}
+
+#navigation ul.menu li{
+  margin-right: 10px;
+  background: #ff0b84;
+  border-radius: 5px;
+  width: 100px;
+}
+#navigation ul.menu li:hover{
+  background: #ff58ab;
+}
+
+#navigation ul.menu li.active-trail{
+  font-weight: bold;
+}
+
 .center{
   text-align:center;
   margin: 0 auto;
@@ -299,4 +327,44 @@ a.user-link:hover{
   position:relative;
   top: 2px;
   border-bottom: none;
+}
+
+#social-links{
+  float: left;
+}
+#social-links ul{
+margin: 0;  
+}
+
+#social-links ul li{
+  display: inline;  
+}
+#view-more{
+  float:right;
+}
+#view-more .view-more-questions{
+  margin: 0;
+  margin-top: 10px;
+}
+
+#view-more .view-more img{
+  margin: 0 auto;
+  display: block;
+}
+
+#bt-questionnaire-delete-form{
+  padding: 5px;
+  width: 300px;
+  margin: 5px auto;
+  border: 2px solid black;
+}
+#bt-questionnaire-delete-form div{
+  font-size: 14px;
+  text-align: center;
+}
+
+
+#bt-questionnaire-delete-form #edit-submit{
+  display: block;
+  margin: 5px auto;
 }

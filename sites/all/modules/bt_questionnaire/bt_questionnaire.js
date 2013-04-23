@@ -9,6 +9,19 @@ Drupal.behaviors.btQuestionnaireQuestions = {
          }
       });
     });
+    
+    $('#questionnaire-owner-links .delete-questionnaire:not(.questionnaireQuestions-processed)', context).addClass('questionnaireQuestions-processed').each(function(){
+      $(this).click(function(){
+        if ($('#bt-questionnaire-delete-form').hasClass('hidden')){
+          $('#bt-questionnaire-delete-form').removeClass('hidden');
+        }
+        else{
+          $('#bt-questionnaire-delete-form').addClass('hidden');
+        }
+        return false;
+        
+      })
+    });
   
     $('#results-wrapper:not(.questionnaireQuestions-processed)', context).addClass('questionnaireQuestions-processed').each(function(){
       var ajaxImage = null;
