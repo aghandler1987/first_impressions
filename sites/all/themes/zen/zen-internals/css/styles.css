@@ -435,7 +435,7 @@ margin: 0;
   right: 0.25em;
 }
 
-#pager{width:600px;margin:auto;}
+#pager{width:600px;margin:auto;clear:both;margin-top:20px;}
 #pager a{font-size:16px;}
 #pager .arrow{position:relative;top:-2px;}
 #pager .older{float:right;}
@@ -454,6 +454,7 @@ margin: 0;
   margin : 5px 5px;
   border : 1px solid #ff0b84;
   background-color : #ddd;
+  padding-top:20px;
 }
 #q-list-wrapper .q-list-item.dark{
   background-color : #FFC2DA
@@ -461,7 +462,6 @@ margin: 0;
 #q-list-wrapper .q-list-item img{
   display:block;
   margin:auto;
-  margin-top : 20px;
 }
 #q-list-wrapper .q-list-item .image-item{
   margin-bottom : 10px;
@@ -480,6 +480,13 @@ margin: 0;
   font-size : 12px;
   text-align : center;
   font-family : didot;
+}
+
+.ajax-loader{
+  display : block;
+  margin-right : auto;
+  margin-left : auto;
+  margin-top : 100px;
 }
 
 
