@@ -113,9 +113,9 @@ function bt_core_get_social_links(){
   $output .= '<ul class = "social">';
   $current_page = (isset($_SERVER['QUERY_STRING']))? $base_url . '?' . $_SERVER['QUERY_STRING'] : $base_url;
   $main_page = 'http://www.bobbie.com/firstimpressions';
-  $output .= '<li><a href = "http://www.facebook.com/sharer.php?s=100&p[title]=What\'s%20Your%20First%20Impression?&p[url]=' . $current_page. '&p[images][0]=http://bobbie.com/wp-content/themes/bobbie-book-2013/img/i_header.jpg" target="_blank" class = "facebook"><img src = "/sites/all/themes/zen/zen-internals/images/fb.jpg"></a></li>';
-  $output .= '<li><a href = "http://twitter.com/share?text=What\'s%20Your%20First%20Impression?&url=' . $current_page . '" target="_blank" class = "twitter"><img src = "/sites/all/themes/zen/zen-internals/images/twitter.jpg"></a></li>';
-  $output .= '<li><a href = "mailto:test@test.com?subject=First%20Impressions&amp;body=What%20first%20impression%20do%20I%20make%3F%20Let%20me%20know%20what%20you%20think%20by%20going%20to%20' . $current_page .'%2C%20and%20then%20post%20your%20own%20photo%20at%20http://www.bobbie.com%2Ffirstimpressions !"class = "email"><img src = "/sites/all/themes/zen/zen-internals/images/email.jpg"></a></li>';
+  $output .= '<li><a href = "http://www.facebook.com/sharer.php?s=100&p[title]=What\'s%20Your%20First%20Impression?&p[url]=' . $main_page. '&p[images][0]=http://bobbie.com/wp-content/themes/bobbie-book-2013/img/i_header.jpg" target="_blank" class = "facebook"><img src = "/sites/all/themes/zen/zen-internals/images/fb.jpg"></a></li>';
+  $output .= '<li><a href = "http://twitter.com/share?text=What\'s%20Your%20First%20Impression?&url=' . $main_page . '" target="_blank" class = "twitter"><img src = "/sites/all/themes/zen/zen-internals/images/twitter.jpg"></a></li>';
+  $output .= '<li><a href = "mailto:test@test.com?subject=First%20Impressions&amp;body=What%20first%20impression%20do%20I%20make%3F%20Let%20me%20know%20what%20you%20think%20by%20going%20to%20' . $main_page .'%2C%20and%20then%20post%20your%20own%20photo%20at%20' . $main_page . ' !"class = "email"><img src = "/sites/all/themes/zen/zen-internals/images/email.jpg"></a></li>';
   $output .= '</ul>';
   $output .= '<span class = "share-text">SHARE THIS PAGE!</span>';
   return $output;

@@ -93,11 +93,20 @@ root {
 h2{
   margin: 0;
 }
-#main h1, .header{
+.header{
   font-family: didot;
   font-size: 40px;
   text-align: center;
   width: 400px;
+  display: block;
+  margin: 5px auto;
+}
+
+#main h1{
+  font-family: didot;
+  font-size: 40px;
+  text-align: center;
+  width: 600px;
   display: block;
   margin: 5px auto;
 }
@@ -292,10 +301,6 @@ width: 710px;
   width: 600px;
 }
 
-#bt-questionnaire-create-form .submit-instructions{
-  width: 600px;
-}
-
 #bt-questionnaire-create-form ol li.ordered-element{
   font-family: Didot;
   font-size: 30px;
@@ -312,7 +317,7 @@ width: 710px;
 #bt-questionnaire-create-form .submit-instructions{
   font-size:12px;
   margin: 12px 0;
-  width: 710px;
+  width: 600px;
 }
 
 #bt-questionnaire-create-form #edit-file{
