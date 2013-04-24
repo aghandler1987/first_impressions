@@ -448,23 +448,24 @@ margin: 0;
   padding-left:0px!important;
 }
 #q-list-wrapper .q-list-item{
-  width : 340px;
-  height : 340px;
+  width : 210px;
+  height : 210px;
   float : left;
   margin : 5px 5px;
-  border : 1px solid #ff0b84;
-  background-color : #ddd;
-  padding-top:20px;
+  padding-top : 5px;
+  background-color : #000;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
 }
-#q-list-wrapper .q-list-item.dark{
-  background-color : #FFC2DA
+
+#q-list-wrapper .image-item{
+  padding-top : 2px;
 }
+
 #q-list-wrapper .q-list-item img{
   display:block;
   margin:auto;
-}
-#q-list-wrapper .q-list-item .image-item{
-  margin-bottom : 10px;
 }
 #q-list-wrapper .q-list-item a{
   display : block;

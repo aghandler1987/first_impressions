@@ -281,16 +281,16 @@ function bt_questionnaire_list_ajax(){
   foreach($nodes as $nid => $node){
     $num_subs = ceil($num_votes[$nid] / count($node->questions));
     $extra_class = '';
-    if($counter % 3 == 0){
+    if($counter % 2 == 0){
       $extra_class = 'dark';
     }
     $row_disp = '<a href="/questionnaire/' . $nid . '">';
-    $row_disp .= '<div class="image-item"><img src="' . image_style_url('bt_questionnaire_image_thumb', $node->image) . '"/></div>';
-    $row_disp .= '<span class="meta">Uploaded on ' . date('F j, Y', $node->created) . '</span>';
-    if($num_subs > 0){
-      $num_vote_str = format_plural($num_subs, '@count person has voted', '@count people have voted');
-      $row_disp .= '<span class="meta">' . $num_vote_str . '</span>';      
-    }
+    $row_disp .= '<div class="image-item"><img src="' . image_style_url('bt_questionnaire_image_thumb_square', $node->image) . '"/></div>';
+//    $row_disp .= '<span class="meta">Uploaded on ' . date('F j, Y', $node->created) . '</span>';
+//    if($num_subs > 0){
+//      $num_vote_str = format_plural($num_subs, '@count person has voted', '@count people have voted');
+//      $row_disp .= '<span class="meta">' . $num_vote_str . '</span>';      
+//    }
     $row_disp .= '</a>';
     $rows[] = array('data' => $row_disp, 'class' => array('q-list-item ' . $extra_class));
     $counter ++;

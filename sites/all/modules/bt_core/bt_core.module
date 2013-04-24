@@ -26,6 +26,16 @@ function bt_core_image_default_styles(){
       ),
     )
   );
+  
+  $styles['bt_questionnaire_image_thumb_square'] = array(
+      'effects' => array(
+          array(
+              'name' => 'image_scale_and_crop',
+              'data' => array('width' => 200, 'height' => 200),
+              'weight' => 0
+          )
+      )
+  );
   return $styles;
 }
 
