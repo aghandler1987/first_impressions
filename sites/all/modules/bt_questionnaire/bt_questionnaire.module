@@ -257,7 +257,7 @@ function bt_questionnaire_list_ajax(){
   $query->count = TRUE;
   $count = $query->execute();
 
-  $max = 20;
+  $max = 21;
   $start = 0;
   if(isset($_GET['start'])){
     $start = $_GET['start'];
