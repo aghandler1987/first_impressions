@@ -857,13 +857,15 @@ WHERE qr.qnid = :qnid group by qr.answer_id;";
   
   foreach ($votes as $qid=>$question){
     $header = array();
-    $header[] = array('data' =>'<p class = "question-results-title"><span class = "total-question-votes">' . $total['questions'][$qid] . ' total votes </span></p>', 'colspan' =>2);
+    //$header[] = array('data' =>'<p class = "question-results-title"><span class = "total-question-votes">' . $total['questions'][$qid] . ' total votes </span></p>', 'colspan' =>2);
+    $header[] = array('data' =>'<p class = "question-results-title"><span class = "total-question-votes"></span></p>', 'colspan' =>2);
     $rows = array();
     foreach ($question['answers'] as $aid=>$answer){
       $row = array();
       $perc = round(($votes[$qid]['answers'][$aid]['votes']/$total['questions'][$qid]) * 100) . '%';
       $vote_text = $votes[$qid]['answers'][$aid]['votes'] > 1 ? ' total votes)' : ' total vote)';
-      $row[] = array('data' => $perc . ' <span class = "total-votes"> (' . $votes[$qid]['answers'][$aid]['votes'] . $vote_text .'</span> SAID ' . $answer['title'], 'class' =>'stats-row'); 
+      //$row[] = array('data' => $perc . ' <span class = "total-votes"> (' . $votes[$qid]['answers'][$aid]['votes'] . $vote_text .'</span> SAID ' . $answer['title'], 'class' =>'stats-row'); 
+      $row[] = array('data' => $perc . ' SAID ' . $answer['title'], 'class' =>'stats-row'); 
       $bar_graph = '<div class = "bar"><div class = "bar-graph"style="width: ' . $perc  .'"></div></div>';
       $row[] = array('data'=> $bar_graph, 'class' => 'bar-row');
       $rows[] = $row;
